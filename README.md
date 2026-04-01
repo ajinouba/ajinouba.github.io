@@ -1,2 +1,0 @@
-# ajinouba.github.io
-suibian
