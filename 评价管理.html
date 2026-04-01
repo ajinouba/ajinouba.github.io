@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评价管理 - 报告对比分析平台</title>
+    <style>
+        /* 全局样式重置（与前序页面保持一致） */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* 布局容器 */
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 左侧导航栏（评价管理菜单激活） */
+        .sidebar {
+            width: 220px;
+            background-color: #1e68c4;
+            color: #fff;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .sidebar .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #2979d1;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #195bb8;
+        }
+
+        .sidebar .nav-menu {
+            padding-top: 20px;
+        }
+
+        .sidebar .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-item:hover {
+            background-color: #2979d1;
+        }
+
+        .sidebar .nav-item.active {
+            background-color: #2979d1;
+        }
+
+        /* 右侧主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* 顶部工具栏（与前序页面保持一致） */
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header .title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e68c4;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .user-info img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .header .btn {
+            padding: 6px 12px;
+            background-color: #1e68c4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+
+        .header .btn:hover {
+            background-color: #2979d1;
+        }
+
+        /* 搜索筛选区域 */
+        .search-filter {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-filter .form-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-filter label {
+            margin-right: 8px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .search-filter input, .search-filter select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            min-width: 180px;
+        }
+
+        .search-filter input:focus, .search-filter select:focus {
+            outline: none;
+            border-color: #1e68c4;
+        }
+
+        .search-filter .btn-group {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-filter .btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-search {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .btn-search:hover {
+            background-color: #2979d1;
+        }
+
+        .btn-reset {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* 评价列表卡片 */
+        .evaluation-card {
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .evaluation-card .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e68c4;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .evaluation-card .total-count {
+            font-size: 12px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        /* 评价列表样式 */
+        .evaluation-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .evaluation-list th {
+            background-color: #f5f7fa;
+            color: #333;
+            font-weight: bold;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #eee;
+            font-size: 13px;
+        }
+
+        .evaluation-list td {
+            padding: 15px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .evaluation-list tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .evaluation-list tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 评分样式 */
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rating .like, .rating .dislike {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .rating .like {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+
+        .rating .dislike {
+            background-color: #fef2f2;
+            color: #e63946;
+        }
+
+        .rating svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 评价内容样式 */
+        .eval-content {
+            max-width: 400px;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .eval-content .full-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 10;
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 400px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .eval-content:hover .full-content {
+            display: block;
+        }
+
+        .eval-content .more {
+            color: #1e68c4;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 同步AI开关样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #1e68c4;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* 操作按钮样式 */
+        .operate-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+            transition: all 0.2s;
+        }
+
+        .edit-btn {
+            background-color: #f0f9ff;
+            color: #0284c7;
+        }
+
+        .edit-btn:hover {
+            background-color: #0284c7;
+            color: #fff;
+        }
+
+        .delete-btn {
+            background-color: #fef2f2;
+            color: #e63946;
+        }
+
+        .delete-btn:hover {
+            background-color: #e63946;
+            color: #fff;
+        }
+
+        .sync-btn {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+
+        .sync-btn:hover {
+            background-color: #059669;
+            color: #fff;
+        }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(.disabled):not(.active) {
+            border-color: #1e68c4;
+            color: #1e68c4;
+        }
+
+        .pagination-btn.active {
+            background-color: #1e68c4;
+            color: #fff;
+            border-color: #1e68c4;
+        }
+
+        .pagination-btn.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            border-color: #eee;
+        }
+
+        /* 编辑评价弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            width: 60%;
+            max-width: 700px;
+            border-radius: 8px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background-color: #fef2f2;
+            color: #e63946;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e68c4;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.6;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1e68c4;
+        }
+
+        .form-group .sync-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .form-group .sync-option label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-footer .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn-save {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .btn-save:hover {
+            background-color: #2979d1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧导航栏（评价管理菜单激活） -->
+        <div class="sidebar">
+            <div class="logo">报告对比分析平台</div>
+            <div class="nav-menu">
+                <div class="nav-item" onclick="location.href='index.html'">
+                    <span>报告分析</span>
+                </div>
+                <div class="nav-item" onclick="location.href='文档管理.html'">
+                    <span>文档管理</span>
+                </div>
+                <div class="nav-item" onclick="location.href='查询记录.html'">
+                    <span>查询记录</span>
+                </div>
+                <div class="nav-item active" onclick="location.href='评价管理.html'">
+                    <span>评价管理</span>
+                </div>
+                <div class="nav-item">
+                    <span>系统设置</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧主内容区 -->
+        <div class="main-content">
+            <!-- 顶部工具栏 -->
+            <div class="header">
+                <div class="title">报告评价管理</div>
+                <div class="user-info">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTY4YzQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxOCIgY3k9IjE0IiByPSIxMCIgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzFlNjhjNDtzdHJva2Utd2lkdGg6MiIvPjxwYXRoIGQ9Ik0yOCAyOGgtMTZBMiAyIDAgMCAxIDEwIDI2YzAgMi4yMSAxLjc5IDQgNCA0aDEyYTIgMiAwIDAgMCAyLTJWMjh6IiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMWU2OGM0O3N0cm9rZS13aWR0aDoyIi8+PC9zdmc+" alt="用户头像">
+                    <span>管理员</span>
+                    <button class="btn">退出</button>
+                </div>
+            </div>
+
+            <!-- 搜索筛选区域 -->
+            <div class="search-filter">
+                <div class="form-item">
+                    <label>报告名称：</label>
+                    <input type="text" id="reportName" placeholder="请输入报告名称关键词">
+                </div>
+                <div class="form-item">
+                    <label>评价时间：</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-item">
+                    <label>至：</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-item">
+                    <label>同步状态：</label>
+                    <select id="syncStatus">
+                        <option value="">全部</option>
+                        <option value="1">已同步到AI</option>
+                        <option value="0">未同步到AI</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-search">查询</button>
+                    <button class="btn btn-reset">重置</button>
+                </div>
+            </div>
+
+            <!-- 评价列表卡片 -->
+            <div class="evaluation-card">
+                <div class="card-title">
+                    报告评价列表
+                    <span class="total-count">共 6 条评价记录</span>
+                </div>
+
+                <!-- 评价列表 -->
+                <table class="evaluation-list">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>报告名称</th>
+                            <th>评价人</th>
+                            <th>评分情况</th>
+                            <th>评价内容</th>
+                            <th>评价时间</th>
+                            <th>同步AI优化</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-id="1">
+                            <td>1</td>
+                            <td>2022-2024 对比报告</td>
+                            <td>管理员</td>
+                            <td>
+                                <div class="rating">
+                                    <div class="like" title="点赞">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="eval-content">
+                                    报告数据对比清晰，战略分析维度全面，建议增加2025年预测数据...
+                                    <span class="more">查看全部</span>
+                                    <div class="full-content">
+                                        报告数据对比清晰，战略分析维度全面，建议增加2025年预测数据，数字化转型部分可以补充投入产出比分析，风险评估部分可以细化政策调整的具体影响因素。整体报告质量较高，对决策有很好的参考价值。
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2025-01-15 15:20:38</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <button class="operate-btn edit-btn">编辑</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                                <button class="operate-btn sync-btn">立即同步</button>
+                            </td>
+                        </tr>
+                        <tr data-id="2">
+                            <td>2</td>
+                            <td>2022-2023 对比报告</td>
+                            <td>市场部-张三</td>
+                            <td>
+                                <div class="rating">
+                                    <div class="like" title="点赞">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="eval-content">
+                                    2023年品类拓展部分分析到位，建议补充竞品对比数据，市场份额...
+                                    <span class="more">查看全部</span>
+                                    <div class="full-content">
+                                        2023年品类拓展部分分析到位，建议补充竞品对比数据，市场份额数据可以更细化到各产品线，高端定制化服务的客户反馈数据不足，希望后续报告能补充这部分内容。
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2025-01-14 11:30:15</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <button class="operate-btn edit-btn">编辑</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                                <button class="operate-btn sync-btn">立即同步</button>
+                            </td>
+                        </tr>
+                        <tr data-id="3">
+                            <td>3</td>
+                            <td>2023-2024 对比报告</td>
+                            <td>技术部-李四</td>
+                            <td>
+                                <div class="rating">
+                                    <div class="like" title="点赞">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="eval-content">
+                                    数字化转型分析专业，技术投入部分数据详实，建议增加系统建设...
+                                    <span class="more">查看全部</span>
+                                    <div class="full-content">
+                                        数字化转型分析专业，技术投入部分数据详实，建议增加系统建设的具体技术选型分析，线上智能服务平台的性能指标和用户体验数据可以补充，整体报告对技术战略的指导意义很强。
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2025-01-12 17:40:22</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <button class="operate-btn edit-btn">编辑</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                                <button class="operate-btn sync-btn">立即同步</button>
+                            </td>
+                        </tr>
+                        <tr data-id="4">
+                            <td>4</td>
+                            <td>2022-2023-2024 初版</td>
+                            <td>财务部-王五</td>
+                            <td>
+                                <div class="rating">
+                                    <div class="dislike" title="点踩">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor" transform="rotate(180 12 12)"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="eval-content">
+                                    初版报告数据准确，但分析维度单一，仅关注财务数据，缺乏...
+                                    <span class="more">查看全部</span>
+                                    <div class="full-content">
+                                        初版报告数据准确，但分析维度单一，仅关注财务数据，缺乏非财务指标的分析，建议增加现金流、资产周转率等财务健康度指标，同时补充行业对标分析，使报告更具参考价值。
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2025-01-10 10:15:47</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <button class="operate-btn edit-btn">编辑</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                                <button class="operate-btn sync-btn">立即同步</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- 分页控件 -->
+                <div class="pagination">
+                    <button class="pagination-btn disabled">«</button>
+                    <button class="pagination-btn disabled">‹</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">›</button>
+                    <button class="pagination-btn">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑评价弹窗 -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div class="modal-title">编辑评价</div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="evalContent">评价内容</label>
+                    <textarea id="evalContent" placeholder="请输入评价内容..."></textarea>
+                    <div class="sync-option">
+                        <label class="switch">
+                            <input type="checkbox" id="syncAI">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="syncAI">同步到AI进行报告优化</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" id="cancelBtn">取消</button>
+                    <button type="button" class="btn btn-save" id="saveBtn">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 模拟评价数据
+        const evaluationData = {
+            '1': {
+                reportName: '2022-2024 对比报告',
+                evaluator: '管理员',
+                ratingType: 'like',
+                ratingCount: 28,
+                content: '报告数据对比清晰，战略分析维度全面，建议增加2025年预测数据，数字化转型部分可以补充投入产出比分析，风险评估部分可以细化政策调整的具体影响因素。整体报告质量较高，对决策有很好的参考价值。',
+                time: '2025-01-15 15:20:38',
+                sync: true
+            },
+            '2': {
+                reportName: '2022-2023 对比报告',
+                evaluator: '市场部-张三',
+                ratingType: 'like',
+                ratingCount: 15,
+                content: '2023年品类拓展部分分析到位，建议补充竞品对比数据，市场份额数据可以更细化到各产品线，高端定制化服务的客户反馈数据不足，希望后续报告能补充这部分内容。',
+                time: '2025-01-14 11:30:15',
+                sync: false
+            },
+            '3': {
+                reportName: '2023-2024 对比报告',
+                evaluator: '技术部-李四',
+                ratingType: 'like',
+                ratingCount: 20,
+                content: '数字化转型分析专业，技术投入部分数据详实，建议增加系统建设的具体技术选型分析，线上智能服务平台的性能指标和用户体验数据可以补充，整体报告对技术战略的指导意义很强。',
+                time: '2025-01-12 17:40:22',
+                sync: true
+            },
+            '4': {
+                reportName: '2022-2023-2024 初版',
+                evaluator: '财务部-王五',
+                ratingType: 'dislike',
+                ratingCount: 3,
+                content: '初版报告数据准确，但分析维度单一，仅关注财务数据，缺乏非财务指标的分析，建议增加现金流、资产周转率等财务健康度指标，同时补充行业对标分析，使报告更具参考价值。',
+                time: '2025-01-10 10:15:47',
+                sync: false
+            }
+        };
+
+        // ========== 核心功能实现 ==========
+        // 1. 编辑评价功能
+        const editModal = document.getElementById('editModal');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const evalContent = document.getElementById('evalContent');
+        const syncAI = document.getElementById('syncAI');
+        let currentEvalId = '';
+
+        // 绑定编辑按钮事件
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tr = this.closest('tr');
+                currentEvalId = tr.dataset.id;
+                const data = evaluationData[currentEvalId];
+                
+                if (data) {
+                    // 填充表单数据
+                    evalContent.value = data.content;
+                    syncAI.checked = data.sync;
+                    
+                    // 显示弹窗
+                    editModal.style.display = 'flex';
+                }
+            });
+        });
+
+        // 关闭弹窗
+        function closeModal() {
+            editModal.style.display = 'none';
+            // 重置表单
+            document.getElementById('editForm').reset();
+            currentEvalId = '';
+        }
+
+        modalCloseBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // 点击弹窗外区域关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === editModal) {
+                closeModal();
+            }
+        });
+
+        // 保存修改
+        saveBtn.addEventListener('click', function() {
+            if (!currentEvalId) return;
+            
+            const newContent = evalContent.value.trim();
+            const newSyncStatus = syncAI.checked;
+            
+            if (!newContent) {
+                alert('评价内容不能为空！');
+                return;
+            }
+            
+            // 更新数据
+            evaluationData[currentEvalId].content = newContent;
+            evaluationData[currentEvalId].sync = newSyncStatus;
+            
+            // 更新页面显示
+            const tr = document.querySelector(`tr[data-id="${currentEvalId}"]`);
+            if (tr) {
+                // 更新评价内容预览
+                const contentCell = tr.cells[4];
+                const shortContent = newContent.length > 30 ? newContent.substring(0, 30) + '...' : newContent;
+                contentCell.innerHTML = `
+                    <div class="eval-content">
+                        ${shortContent}
+                        <span class="more">查看全部</span>
+                        <div class="full-content">${newContent}</div>
+                    </div>
+                `;
+                
+                // 更新同步开关状态
+                const syncSwitch = tr.querySelector('.switch input');
+                syncSwitch.checked = newSyncStatus;
+            }
+            
+            alert('评价修改保存成功！');
+            closeModal();
+        });
+
+        // 2. 删除评价功能
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tr = this.closest('tr');
+                const reportName = tr.cells[1].textContent;
+                const evaluator = tr.cells[2].textContent;
+                
+                if (confirm(`确定要删除 ${evaluator} 对 "${reportName}" 的评价吗？此操作不可恢复！`)) {
+                    tr.remove();
+                    // 这里可以添加更新总记录数的逻辑
+                }
+            });
+        });
+
+        // 3. 立即同步功能
+        document.querySelectorAll('.sync-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tr = this.closest('tr');
+                const reportName = tr.cells[1].textContent;
+                const syncSwitch = tr.querySelector('.switch input');
+                
+                if (syncSwitch.checked) {
+                    alert(`"${reportName}" 的评价已同步到AI，AI将基于该评价优化后续报告生成逻辑！`);
+                } else {
+                    if (confirm(`确定要将 "${reportName}" 的评价同步到AI进行报告优化吗？`)) {
+                        syncSwitch.checked = true;
+                        alert(`"${reportName}" 的评价已成功同步到AI！`);
+                    }
+                }
+            });
+        });
+
+        // 4. 搜索筛选功能
+        document.querySelector('.btn-search').addEventListener('click', function() {
+            const reportName = document.getElementById('reportName').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const syncStatus = document.getElementById('syncStatus').value;
+            
+            // 这里可以添加实际的筛选逻辑
+            alert(`已执行查询：
+报告名称关键词：${reportName || '无'}
+评价时间范围：${startDate || '无'} 至 ${endDate || '无'}
+同步状态：${syncStatus === '1' ? '已同步到AI' : syncStatus === '0' ? '未同步到AI' : '全部'}`);
+        });
+
+        document.querySelector('.btn-reset').addEventListener('click', function() {
+            document.getElementById('reportName').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('syncStatus').value = '';
+        });
+
+        // 5. 分页功能（模拟）
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            if (!btn.classList.contains('disabled')) {
+                btn.addEventListener('click', function() {
+                    if (!this.classList.contains('active')) {
+                        document.querySelectorAll('.pagination-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        // 这里可以添加实际的分页加载逻辑
+                        alert(`已切换至第 ${this.textContent} 页`);
+                    }
+                });
+            }
+        });
+
+        // 6. 同步开关切换事件
+        document.querySelectorAll('.switch input').forEach(switchInput => {
+            switchInput.addEventListener('change', function() {
+                const tr = this.closest('tr');
+                const reportName = tr.cells[1].textContent;
+                
+                if (this.checked) {
+                    if (confirm(`确定要将 "${reportName}" 的评价同步到AI进行报告优化吗？`)) {
+                        alert(`"${reportName}" 的评价已设置为同步到AI！`);
+                    } else {
+                        this.checked = false;
+                    }
+                } else {
+                    alert(`已取消 "${reportName}" 评价同步到AI的设置！`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报告对比分析平台 - 专业办公系统</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* 布局容器 */
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 220px;
+            background-color: #1e68c4; /* 主色调-深蓝 */
+            color: #fff;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .sidebar .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #2979d1;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #195bb8;
+        }
+
+        .sidebar .nav-menu {
+            padding-top: 20px;
+        }
+
+        .sidebar .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-item:hover, .sidebar .nav-item.active {
+            background-color: #2979d1; /* 主色调-浅蓝 */
+        }
+
+        /* 右侧主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* 左右布局容器 */
+        .split-layout {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+
+        /* 左侧上传区域 */
+        .left-panel {
+            width: 380px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        .left-panel .card {
+            margin-bottom: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .left-panel .upload-area {
+            height: 80px;
+            min-height: 80px;
+            flex-shrink: 0;
+        }
+
+        .left-panel .report-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin: 10px 0 70px 0;
+            max-height: calc(100vh - 340px);
+        }
+
+        /* 左侧底部固定按钮区 */
+        .left-panel .btn-group {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 15px;
+            background: linear-gradient(to bottom, #fafbfc, #f0f2f5);
+            border-top: 1px solid #e0e0e0;
+            margin: 0;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+
+        .left-panel .btn-group button {
+            flex: 1;
+            padding: 8px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .left-panel .btn-group button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .left-panel .btn-group button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .left-panel .btn-group .btn-default {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            color: #555;
+            border: 1px solid #d9d9d9;
+        }
+
+        .left-panel .btn-group .btn-default:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%);
+            border-color: #bfbfbf;
+            color: #333;
+        }
+
+        .left-panel .btn-group .btn-secondary {
+            background: linear-gradient(135deg, #ff9c2b 0%, #fa8c16 100%);
+            color: #fff;
+            border: 1px solid #fa8c16;
+        }
+
+        .left-panel .btn-group .btn-secondary:hover {
+            background: linear-gradient(135deg, #ffa940 0%, #ff9c2b 100%);
+            border-color: #ff9c2b;
+        }
+
+        .left-panel .btn-group .btn-primary {
+            background: linear-gradient(135deg, #2979d1 0%, #1e68c4 100%);
+            color: #fff;
+            border: 1px solid #1e68c4;
+        }
+
+        .left-panel .btn-group .btn-primary:hover {
+            background: linear-gradient(135deg, #3d8be0 0%, #2979d1 100%);
+            border-color: #2979d1;
+        }
+
+        /* 屏幕适配 */
+        @media screen and (max-width: 1200px) {
+            .left-panel {
+                width: 320px;
+            }
+        }
+
+        @media screen and (max-width: 992px) {
+            .split-layout {
+                flex-direction: column;
+                height: auto;
+                overflow: visible;
+            }
+            .left-panel {
+                width: 100%;
+                height: auto;
+                max-height: 500px;
+            }
+            .left-panel .report-list {
+                max-height: 300px;
+                margin-bottom: 70px;
+            }
+            .right-panel {
+                height: 600px;
+            }
+        }
+
+        /* 右侧报告展示区域 */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-panel .card {
+            margin-bottom: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 报告内容展示区滚动 */
+        .report-display-area {
+            flex: 1;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel .card-title {
+            flex-shrink: 0;
+        }
+
+        /* 报告内容展示区 - 空白状态 */
+        .report-display-area.empty {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .report-display-area.empty::before {
+            content: '点击"生成对比报告"按钮开始分析';
+            color: #999;
+            font-size: 14px;
+        }
+
+        .report-display-area.generating {
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        /* 进度展示在右侧 */
+        .right-panel .progress-container {
+            margin: 15px 0;
+        }
+
+        /* 顶部工具栏 */
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .user-info img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .header .btn {
+            padding: 6px 12px;
+            background-color: #1e68c4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+
+        .header .btn:hover {
+            background-color: #2979d1;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e68c4;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            border: 2px dashed #d0d7e3;
+            border-radius: 6px;
+            padding: 20px;
+            height: 120px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-area:hover {
+            border-color: #1e68c4;
+        }
+
+        .upload-area .text {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .upload-area .tip {
+            color: #999;
+            font-size: 11px;
+        }
+
+        /* 统计信息栏 */
+        .upload-stats {
+            display: flex;
+            gap: 20px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 100%);
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #e0e7ff;
+        }
+
+        .upload-stats .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-stats .stat-label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .upload-stats .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e68c4;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* 已上传报告列表 */
+        .report-list {
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        /* 文件分组样式 */
+        .file-group {
+            margin-bottom: 10px;
+            border: 1px solid #e8f0fe;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .file-group-header {
+            background: linear-gradient(135deg, #1e68c4 0%, #2979d1 100%);
+            color: #fff;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-group-header:hover {
+            background: linear-gradient(135deg, #195bb8 0%, #1e68c4 100%);
+        }
+
+        .file-group-header .group-name {
+            font-weight: bold;
+            font-size: 14px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+
+        .file-group-header .group-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .file-group-header .group-count {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .file-group-header .group-delete-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .file-group-header .group-delete-btn:hover {
+            background: #e53935;
+            transform: scale(1.1);
+        }
+
+        .file-group-content {
+            background-color: #f9fafb;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .file-group.expanded .file-group-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-group-content .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            background-color: transparent;
+        }
+
+        .file-group-content .report-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-group-content .report-item:hover {
+            background-color: #f0f5ff;
+        }
+
+        .file-group-content .report-item .info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+            margin-right: 8px;
+        }
+
+        .file-group-content .report-item .info .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+            color: #333;
+            max-width: 180px;
+            display: block;
+        }
+
+        /* 操作按钮 */
+        .file-group-content .report-item .operate {
+            display: flex;
+            gap: 6px;
+        }
+
+        .operate-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        /* 查看按钮样式 - 统一灰色 */
+        .view-btn {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .view-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* 删除按钮样式 - 统一灰色 */
+        .delete-btn {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .delete-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        .btn-group button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+
+        .btn-default {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .btn-default:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn-secondary {
+            background-color: #fa8c16;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ff9c2b;
+        }
+
+        /* 点赞按钮样式 */
+        .btn-like, .btn-dislike {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            background-color: #fff;
+            color: #666;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-like:hover, .btn-dislike:hover {
+            border-color: #1e68c4;
+            color: #1e68c4;
+        }
+
+        /* 点赞选中状态 */
+        .btn-like.active {
+            background-color: #e3f2fd;
+            border-color: #1e68c4;
+            color: #1e68c4;
+        }
+
+        /* 点踩选中状态 */
+        .btn-dislike.active {
+            background-color: #ffebee;
+            border-color: #e53935;
+            color: #e53935;
+        }
+
+        /* 弹窗按钮样式 - 与评价管理页面保持一致 */
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-footer .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn-save {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .btn-save:hover {
+            background-color: #2979d1;
+        }
+
+        /* 预估时间显示 */
+        .time-estimate {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 1px solid #ffb74d;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-estimate .icon {
+            font-size: 20px;
+        }
+
+        .time-estimate .text {
+            flex: 1;
+        }
+
+        .time-estimate .label {
+            font-size: 13px;
+            color: #e65100;
+            font-weight: bold;
+        }
+
+        .time-estimate .value {
+            font-size: 12px;
+            color: #f57c00;
+            margin-top: 2px;
+        }
+
+        /* 多结果展示区域 */
+        .multi-results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .result-card-header {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 100%);
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-card-header .result-title {
+            font-weight: bold;
+            color: #1e68c4;
+            font-size: 14px;
+        }
+
+        .result-card-header .result-files {
+            font-size: 12px;
+            color: #666;
+            background: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .result-card-content {
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .result-card-actions {
+            padding: 10px 15px;
+            background: #f9fafb;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .result-card-actions button {
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .result-card-actions .btn-default {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .result-card-actions .btn-default:hover {
+            background-color: #e5e7eb;
+        }
+
+        .result-card-actions .btn-like {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+
+        .result-card-actions .btn-like:hover {
+            border-color: #1e68c4;
+            color: #1e68c4;
+        }
+
+        .result-card-actions .btn-like.active {
+            background-color: #e3f2fd;
+            border-color: #1e68c4;
+            color: #1e68c4;
+        }
+
+        .result-card-actions .btn-dislike {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+
+        .result-card-actions .btn-dislike:hover {
+            border-color: #e53935;
+            color: #e53935;
+        }
+
+        .result-card-actions .btn-dislike.active {
+            background-color: #ffebee;
+            border-color: #e53935;
+            color: #e53935;
+        }
+
+        /* 批量操作栏按钮样式 */
+        .batch-actions-bar .btn-primary {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-size: 13px;
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .batch-actions-bar .btn-primary:hover {
+            background-color: #2979d1;
+        }
+
+        /* 进度条样式 */
+        .progress-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1e68c4, #2979d1);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .btn-primary {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #2979d1;
+        }
+
+        /* 查看报告弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background-color: #fef2f2;
+            color: #e63946;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e68c4;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .file-content {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .file-content h3 {
+            color: #1e68c4;
+            margin: 16px 0 8px 0;
+        }
+
+        .file-content p {
+            margin-bottom: 12px;
+        }
+
+        /* 自定义弹窗样式 */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-modal.show {
+            display: flex;
+        }
+
+        .custom-modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            min-width: 360px;
+            max-width: 480px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: modalSlideIn 0.2s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .custom-modal-header {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .custom-modal-body {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .custom-modal-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-top: 12px;
+            box-sizing: border-box;
+        }
+
+        .custom-modal-input:focus {
+            outline: none;
+            border-color: #1e68c4;
+        }
+
+        .custom-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .custom-modal-footer button {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .custom-modal-footer .btn-cancel {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .custom-modal-footer .btn-cancel:hover {
+            background-color: #e5e7eb;
+        }
+
+        .custom-modal-footer .btn-confirm {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .custom-modal-footer .btn-confirm:hover {
+            background-color: #2979d1;
+        }
+
+        /* PDF预览区 */
+        .pdf-preview-wrapper {
+            width: 100%;
+            max-width: 816px;
+            margin: 0 auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            height: 600px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pdf-preview-container {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .pdf-page-nav {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .pdf-page-nav .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #1e68c4;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+            font-size: 14px;
+        }
+
+        .pdf-page-nav .nav-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pdf-page-nav .nav-btn:hover:not(:disabled) {
+            background-color: #2979d1;
+        }
+
+        .pdf-page {
+            width: 100%;
+            min-height: 1056px;
+            background-color: #fff;
+            border: 1px solid #dcdcdc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            padding: 40px 50px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .pdf-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pdf-header .title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            color: #1e68c4;
+        }
+
+        .pdf-header .sub-title {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .pdf-content {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .pdf-content .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #195bb8;
+        }
+
+        .pdf-content p {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+
+        .pdf-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .pdf-content table th, .pdf-content table td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        .pdf-content table th {
+            background-color: #f5f7fa;
+            font-weight: bold;
+        }
+
+        .pdf-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            padding: 0 50px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pdf-page-number {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #999;
+        }
+
+        .history-section {
+            margin-bottom: 20px;
+        }
+
+        .history-section .history-title {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .history-item {
+            padding: 8px 15px;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #eee;
+        }
+
+        .history-item:hover {
+            background-color: #e8f0fe;
+            border-color: #1e68c4;
+        }
+
+        .history-item.active {
+            background-color: #1e68c4;
+            color: #fff;
+            border-color: #1e68c4;
+        }
+
+        .history-item .time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .history-item.active .time {
+            color: #e0e8ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧导航栏（核心修改：移除报告上传/批量处理，保留核心菜单） -->
+        <div class="sidebar">
+            <div class="logo">报告对比分析平台</div>
+            <div class="nav-menu">
+                <div class="nav-item active" onclick="location.href='index.html'">
+                    <span>报告分析</span>
+                </div>
+                <div class="nav-item" onclick="location.href='文档管理.html'">
+                    <span>文档管理</span>
+                </div>
+                <div class="nav-item" onclick="location.href='查询记录.html'">
+                    <span>查询记录</span>
+                </div>
+                <div class="nav-item" onclick="location.href='评价管理.html'">
+                    <span>评价管理</span>
+                </div>
+                <div class="nav-item">
+                    <span>系统设置</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧主内容区 -->
+        <div class="main-content">
+            <!-- 顶部工具栏 -->
+            <div class="header">
+                <div class="title">报告上传与对比</div>
+                <div class="user-info">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTY4YzQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxOCIgY3k9IjE0IiByPSIxMCIgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzFlNjhjNDtzdHJva2Utd2lkdGg6MiIvPjxwYXRoIGQ9Ik0yOCAyOGgtMTZBMiAyIDAgMCAxIDEwIDI2YzAgMi4yMSAxLjc5IDQgNCA0aDEyYTIgMiAwIDAgMCAyLTJWMjh6IiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMWU2OGM0O3N0cm9rZS13aWR0aDoyIi8+PC9zdmc+" alt="用户头像">
+                    <span>管理员</span>
+                    <button class="btn">退出</button>
+                </div>
+            </div>
+
+            <!-- 左右布局容器 -->
+            <div class="split-layout">
+                <!-- 左侧上传区域 -->
+                <div class="left-panel">
+                    <div class="card">
+                        <div class="card-title">上传分析报告</div>
+                        <div class="upload-area" onclick="document.getElementById('folderInput').click()">
+                            <div class="text">📁 点击选择文件夹</div>
+                            <div class="tip">支持上传文件夹，自动按文件名分组</div>
+                            <input type="file" id="folderInput" webkitdirectory directory multiple style="display: none;" onchange="handleFolderUpload(event)">
+                        </div>
+
+                        <!-- 统计信息栏 -->
+                        <div class="upload-stats" id="uploadStats">
+                            <div class="stat-item">
+                                <span class="stat-label">分组数</span>
+                                <span class="stat-value" id="groupCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">文件总数</span>
+                                <span class="stat-value" id="fileCount">0</span>
+                            </div>
+                        </div>
+
+                        <!-- 已上传报告列表 - 按人名分组 -->
+                        <div class="report-list" id="fileGroupList">
+                            <!-- 动态生成分组 -->
+                            <div class="file-group expanded" data-group="张三">
+                                <div class="file-group-header" onclick="toggleGroup(this)">
+                                    <span class="group-name">张三</span>
+                                    <div class="group-actions">
+                                        <span class="group-count">2份</span>
+                                        <button class="group-delete-btn" onclick="event.stopPropagation(); deleteGroup('张三')" title="删除分组">×</button>
+                                    </div>
+                                </div>
+                                <div class="file-group-content">
+                                    <div class="report-item" data-file="张三2022年度工作总结报告.docx">
+                                        <div class="info">
+                                            <span class="file-name">张三2022年度工作总结报告.docx</span>
+                                        </div>
+                                        <div class="operate">
+                                            <button class="operate-btn view-btn" onclick="viewFile('张三2022年度工作总结报告.docx')">查看</button>
+                                            <button class="operate-btn delete-btn" onclick="deleteFile(this)">删除</button>
+                                        </div>
+                                    </div>
+                                    <div class="report-item" data-file="张三2023年度工作总结报告.docx">
+                                        <div class="info">
+                                            <span class="file-name">张三2023年度工作总结报告.docx</span>
+                                        </div>
+                                        <div class="operate">
+                                            <button class="operate-btn view-btn" onclick="viewFile('张三2023年度工作总结报告.docx')">查看</button>
+                                            <button class="operate-btn delete-btn" onclick="deleteFile(this)">删除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="file-group expanded" data-group="李四">
+                                <div class="file-group-header" onclick="toggleGroup(this)">
+                                    <span class="group-name">李四</span>
+                                    <div class="group-actions">
+                                        <span class="group-count">3份</span>
+                                        <button class="group-delete-btn" onclick="event.stopPropagation(); deleteGroup('李四')" title="删除分组">×</button>
+                                    </div>
+                                </div>
+                                <div class="file-group-content">
+                                    <div class="report-item" data-file="李四2022年度工作总结报告.docx">
+                                        <div class="info">
+                                            <span class="file-name">李四2022年度工作总结报告.docx</span>
+                                        </div>
+                                        <div class="operate">
+                                            <button class="operate-btn view-btn" onclick="viewFile('李四2022年度工作总结报告.docx')">查看</button>
+                                            <button class="operate-btn delete-btn" onclick="deleteFile(this)">删除</button>
+                                        </div>
+                                    </div>
+                                    <div class="report-item" data-file="李四2023年度工作总结报告.docx">
+                                        <div class="info">
+                                            <span class="file-name">李四2023年度工作总结报告.docx</span>
+                                        </div>
+                                        <div class="operate">
+                                            <button class="operate-btn view-btn" onclick="viewFile('李四2023年度工作总结报告.docx')">查看</button>
+                                            <button class="operate-btn delete-btn" onclick="deleteFile(this)">删除</button>
+                                        </div>
+                                    </div>
+                                    <div class="report-item" data-file="李四2024年度工作总结报告.docx">
+                                        <div class="info">
+                                            <span class="file-name">李四2024年度工作总结报告.docx</span>
+                                        </div>
+                                        <div class="operate">
+                                            <button class="operate-btn view-btn" onclick="viewFile('李四2024年度工作总结报告.docx')">查看</button>
+                                            <button class="operate-btn delete-btn" onclick="deleteFile(this)">删除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮组 -->
+                        <div class="btn-group">
+                            <button class="btn-default" id="clearListBtn" onclick="clearAllFiles()">清空</button>
+                            <button class="btn-secondary" id="addHistoryBtn" onclick="addHistoryReports()" style="font-size: 12px;">加入历史报告</button>
+                            <button class="btn-primary" id="generateReportBtn" onclick="generateReport()">生成报告</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧报告展示区域 -->
+                <div class="right-panel">
+                    <div class="card">
+                        <div class="card-title">对比报告预览</div>
+                        
+                        <!-- 预估时间显示 -->
+                        <div class="time-estimate" id="timeEstimate" style="display: none;">
+                            <span class="icon">⏱️</span>
+                            <div class="text">
+                                <div class="label">预计分析时间</div>
+                                <div class="value" id="estimateValue">正在计算...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 进度展示区域 -->
+                        <div class="progress-container" id="progressContainer" style="display: none;">
+                            <div class="progress-label">
+                                <span id="progressText">正在分析报告...</span>
+                                <span id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+
+                        <!-- 报告内容展示区 - 支持多结果 -->
+                        <div class="report-display-area empty" id="reportDisplayArea">
+                            <!-- 空白状态显示提示文字 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自定义弹窗组件 -->
+            <div class="custom-modal" id="customModal">
+                <div class="custom-modal-content">
+                    <div class="custom-modal-header" id="customModalHeader">提示</div>
+                    <div class="custom-modal-body" id="customModalBody">内容</div>
+                    <div class="custom-modal-footer" id="customModalFooter">
+                        <button class="btn-confirm" onclick="closeCustomModal()">确定</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 隐藏的历史记录和PDF内容（用于生成后展示） -->
+            <div style="display: none;" id="hiddenContent">
+                <!-- 对比历史记录 -->
+                <div class="history-section">
+                    <div class="history-title">对比历史</div>
+                    <div class="history-list">
+                        <div class="history-item active">
+                            <div>2022-2024 对比报告</div>
+                            <div class="time">2025-01-15 14:30</div>
+                        </div>
+                        <div class="history-item">
+                            <div>2022-2023 对比报告</div>
+                            <div class="time">2025-01-14 10:15</div>
+                        </div>
+                        <div class="history-item">
+                            <div>2023-2024 对比报告</div>
+                            <div class="time">2025-01-12 16:45</div>
+                        </div>
+                        <div class="history-item">
+                            <div>2022-2023-2024 初版</div>
+                            <div class="time">2025-01-10 09:20</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF预览区 -->
+                <div class="pdf-preview-wrapper">
+                    <div class="pdf-preview-container" id="pdfContainer">
+                        <!-- PDF第1页 -->
+                        <div class="pdf-page" id="page1">
+                            <div class="pdf-header">
+                                <div class="title">2022-2024年度分析报告对比总览</div>
+                                <div class="sub-title">生成时间：2025-01-15 | 生成系统：报告对比分析平台</div>
+                            </div>
+                            <div class="pdf-content">
+                                <p>本报告基于上传的2022、2023、2024三个年度的分析报告，通过AI模型从<span style="color: #1e68c4; font-weight: bold;">核心经营数据、市场战略布局、风险评估结论</span>三个维度进行对比分析，旨在清晰呈现近三年的发展趋势与差异点。</p>
+                                
+                                <div class="section-title">一、核心经营数据对比</div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>指标名称</th>
+                                            <th>2022年</th>
+                                            <th>2023年</th>
+                                            <th>2024年</th>
+                                            <th>三年复合增长率</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>营业收入（万元）</td>
+                                            <td>5280</td>
+                                            <td>5914</td>
+                                            <td>6800</td>
+                                            <td>13.2%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>净利润（万元）</td>
+                                            <td>485</td>
+                                            <td>562</td>
+                                            <td>720</td>
+                                            <td>19.1%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>成本费用率</td>
+                                            <td>88.5%</td>
+                                            <td>87.2%</td>
+                                            <td>85.0%</td>
+                                            <td>-1.9%（降幅）</td>
+                                        </tr>
+                                        <tr>
+                                            <td>市场占有率</td>
+                                            <td>12.3%</td>
+                                            <td>14.8%</td>
+                                            <td>18.5%</td>
+                                            <td>19.8%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <p>数据结论：近三年营业收入与净利润均呈稳步增长态势，且净利润增速高于营收增速，核心驱动因素为成本费用率持续下降；市场占有率提升显著，较2022年增长6.2个百分点，市场扩张策略成效显著。</p>
+                                
+                                <div class="section-title">二、市场战略布局差异</div>
+                                <p>1. 2022年战略核心：<span style="font-weight: bold;">区域深耕</span>，聚焦华东、华南两大核心市场，优化供应链体系，降低物流成本。</p>
+                                <p>2. 2023年战略核心：<span style="font-weight: bold;">品类拓展</span>，在原有产品线基础上，新增高端定制化服务，瞄准高净值客户群体。</p>
+                                <p>3. 2024年战略核心：<span style="font-weight: bold;">数字化转型</span>，投入200万元搭建线上智能服务平台，实现订单、售后、数据分析一体化管理。</p>
+                            </div>
+                            <div class="pdf-footer">
+                                <div>报告编号：BD20250115001</div>
+                                <div>保密级别：内部公开</div>
+                            </div>
+                            <div class="pdf-page-number">第 1 页 / 共 3 页</div>
+                        </div>
+
+                        <!-- PDF第2页 -->
+                        <div class="pdf-page" id="page2">
+                            <div class="pdf-header">
+                                <div class="title">2022-2024年度分析报告对比总览</div>
+                                <div class="sub-title">生成时间：2025-01-15 | 生成系统：报告对比分析平台</div>
+                            </div>
+                            <div class="pdf-content">
+                                <div class="section-title">三、风险评估结论对比</div>
+                                <p>1. 2022年风险点：原材料价格波动风险（占比35%）、物流时效风险（占比25%），未提及市场竞争风险。</p>
+                                <p>2. 2023年风险点：新增市场竞争加剧风险（占比40%），原材料价格风险降至20%，新增人才短缺风险（占比15%）。</p>
+                                <p>3. 2024年风险点：数字化转型投入回报周期风险（占比30%）、行业政策调整风险（占比25%），人才短缺风险缓解至8%。</p>
+                                
+                                <div class="section-title">四、关键差异总结</div>
+                                <p>1. 报告结构差异：2024年报告新增<span style="color: #1e68c4; font-weight: bold;">数字化转型专项章节</span>，占比达20%，而2022、2023年报告无相关内容。</p>
+                                <p>2. 数据维度差异：2024年报告引入<span style="color: #1e68c4; font-weight: bold;">客户满意度、复购率</span>等运营指标，数据颗粒度更细。</p>
+                                <p>3. 结论导向差异：2022-2023年报告结论以“业绩复盘”为主，2024年报告结论以“未来战略指引”为主，更具前瞻性。</p>
+                            </div>
+                            <div class="pdf-footer">
+                                <div>报告编号：BD20250115001</div>
+                                <div>保密级别：内部公开</div>
+                            </div>
+                            <div class="pdf-page-number">第 2 页 / 共 3 页</div>
+                        </div>
+
+                        <!-- PDF第3页 -->
+                        <div class="pdf-page" id="page3">
+                            <div class="pdf-header">
+                                <div class="title">2022-2024年度分析报告对比总览</div>
+                                <div class="sub-title">生成时间：2025-01-15 | 生成系统：报告对比分析平台</div>
+                            </div>
+                            <div class="pdf-content">
+                                <div class="section-title">五、未来发展建议</div>
+                                <p>基于近三年报告对比分析，结合市场环境变化，提出以下建议：</p>
+                                <p>1. 持续深化数字化转型：加大智能平台投入，预计2025年实现线上订单占比提升至60%；</p>
+                                <p>2. 风险防控重点：关注政策调整风险，建立行业政策跟踪机制，提前制定应对预案；</p>
+                                <p>3. 数据体系完善：延续2024年的数据精细化策略，新增“客户生命周期价值”等核心指标。</p>
+                                
+                                <div class="section-title">六、总结</div>
+                                <p>2022-2024年企业经营呈稳步增长态势，战略方向从“区域深耕”向“数字化转型”逐步升级，报告体系也从“业绩复盘”向“战略指引”转型。建议后续报告持续强化数据精细化和前瞻性分析，为企业决策提供更有力支撑。</p>
+                            </div>
+                            <div class="pdf-footer">
+                                <div>报告编号：BD20250115001</div>
+                                <div>保密级别：内部公开</div>
+                            </div>
+                            <div class="pdf-page-number">第 3 页 / 共 3 页</div>
+                        </div>
+                    </div>
+
+                    <!-- PDF翻页按钮 -->
+                    <div class="pdf-page-nav">
+                        <button class="nav-btn" id="prevBtn">←</button>
+                        <button class="nav-btn" id="nextBtn">→</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看报告弹窗 -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div class="modal-title" id="modalTitle">报告预览</div>
+            <div class="file-content" id="fileContent">
+                <!-- 报告内容将动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 评价弹窗 -->
+    <div class="modal" id="commentModal" style="display: none;">
+        <div class="modal-content" style="width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">提交评价</h3>
+                <button class="modal-close" id="commentModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="commentInput" placeholder="请输入您的评价内容..." style="width: 100%; height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: none; font-family: inherit; font-size: 14px;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancel" onclick="closeCommentModal()">取消</button>
+                <button type="button" class="btn btn-save" onclick="submitComment()">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 核心功能：删除/查看 ==========
+        // 1. 查看报告功能
+        const viewModal = document.getElementById('viewModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const fileContent = document.getElementById('fileContent');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        // 模拟报告内容
+        const reportData = {
+            '2022年度分析报告.docx': `
+                <h3>2022年度分析报告</h3>
+                <p><strong>一、年度经营概况</strong></p>
+                <p>2022年公司实现营业收入5280万元，净利润485万元，成本费用率88.5%，市场占有率12.3%。</p>
+                <p><strong>二、核心战略</strong></p>
+                <p>2022年战略核心为区域深耕，聚焦华东、华南两大核心市场，优化供应链体系，降低物流成本。</p>
+                <p><strong>三、风险评估</strong></p>
+                <p>主要风险点为原材料价格波动风险（占比35%）、物流时效风险（占比25%）。</p>
+            `,
+            '2023年度分析报告.docx': `
+                <h3>2023年度分析报告</h3>
+                <p><strong>一、年度经营概况</strong></p>
+                <p>2023年公司实现营业收入5914万元，净利润562万元，成本费用率87.2%，市场占有率14.8%。</p>
+                <p><strong>二、核心战略</strong></p>
+                <p>2023年战略核心为品类拓展，在原有产品线基础上，新增高端定制化服务，瞄准高净值客户群体。</p>
+                <p><strong>三、风险评估</strong></p>
+                <p>主要风险点为市场竞争加剧风险（占比40%）、原材料价格风险（20%）、人才短缺风险（15%）。</p>
+            `,
+            '2024年度分析报告.docx': `
+                <h3>2024年度分析报告</h3>
+                <p><strong>一、年度经营概况</strong></p>
+                <p>2024年公司实现营业收入6800万元，净利润720万元，成本费用率85.0%，市场占有率18.5%。</p>
+                <p><strong>二、核心战略</strong></p>
+                <p>2024年战略核心为数字化转型，投入200万元搭建线上智能服务平台，实现订单、售后、数据分析一体化管理。</p>
+                <p><strong>三、风险评估</strong></p>
+                <p>主要风险点为数字化转型投入回报周期风险（30%）、行业政策调整风险（25%）、人才短缺风险（8%）。</p>
+            `
+        };
+
+        // 绑定查看按钮点击事件
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 获取当前报告文件名
+                const reportItem = this.closest('.report-item');
+                const fileName = reportItem.dataset.file;
+                
+                // 填充弹窗内容
+                modalTitle.textContent = fileName;
+                fileContent.innerHTML = reportData[fileName] || '<p>暂无报告内容</p>';
+                
+                // 显示弹窗
+                viewModal.style.display = 'flex';
+            });
+        });
+
+        // 关闭弹窗
+        modalCloseBtn.addEventListener('click', () => {
+            viewModal.style.display = 'none';
+        });
+
+        // 点击弹窗外区域关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === viewModal) {
+                viewModal.style.display = 'none';
+            }
+        });
+
+        // 2. 删除报告功能
+        function deleteFile(btn) {
+            const reportItem = btn.closest('.report-item');
+            const fileName = reportItem.dataset.file;
+            
+            // 确认删除
+            showCustomConfirm('确认删除', `确定要删除 "${fileName}" 吗？<br><span style="color: #e53935;">此操作不可恢复！</span>`, function() {
+                reportItem.remove();
+            });
+        }
+
+        // 为静态HTML中的删除按钮绑定事件
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                deleteFile(this);
+            });
+        });
+
+
+
+        // ========== 其他辅助功能（PDF翻页等） ==========
+        const pdfContainer = document.getElementById('pdfContainer');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pages = ['page1', 'page2', 'page3'];
+        let currentPageIndex = 0;
+
+        function scrollToPage(index) {
+            if (index < 0 || index >= pages.length) return;
+            const page = document.getElementById(pages[index]);
+            pdfContainer.scrollTop = page.offsetTop - 10;
+            currentPageIndex = index;
+            prevBtn.disabled = currentPageIndex === 0;
+            nextBtn.disabled = currentPageIndex === pages.length - 1;
+        }
+
+        scrollToPage(0);
+        prevBtn.addEventListener('click', () => scrollToPage(currentPageIndex - 1));
+        nextBtn.addEventListener('click', () => scrollToPage(currentPageIndex + 1));
+
+        // 历史记录切换
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.history-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const reportTitle = this.querySelector('div').textContent;
+                document.querySelector('.pdf-header .title').textContent = reportTitle;
+                scrollToPage(0);
+            });
+        });
+
+        // ========== 点赞/点踩功能 ==========
+        let likeCount = 28;
+        let dislikeCount = 5;
+        let isLiked = false;
+        let isDisliked = false;
+
+        function toggleLike() {
+            const likeBtn = document.getElementById('likeBtn');
+            const dislikeBtn = document.getElementById('dislikeBtn');
+            const likeCountEl = document.getElementById('likeCount');
+            const dislikeCountEl = document.getElementById('dislikeCount');
+
+            if (isLiked) {
+                // 取消点赞
+                isLiked = false;
+                likeCount--;
+                likeBtn.classList.remove('active');
+            } else {
+                // 添加点赞，如果已点踩则取消点踩
+                isLiked = true;
+                likeCount++;
+                likeBtn.classList.add('active');
+                
+                if (isDisliked) {
+                    isDisliked = false;
+                    dislikeCount--;
+                    dislikeBtn.classList.remove('active');
+                }
+            }
+            
+            likeCountEl.textContent = likeCount;
+            dislikeCountEl.textContent = dislikeCount;
+        }
+
+        function toggleDislike() {
+            const likeBtn = document.getElementById('likeBtn');
+            const dislikeBtn = document.getElementById('dislikeBtn');
+            const likeCountEl = document.getElementById('likeCount');
+            const dislikeCountEl = document.getElementById('dislikeCount');
+
+            if (isDisliked) {
+                // 取消点踩
+                isDisliked = false;
+                dislikeCount--;
+                dislikeBtn.classList.remove('active');
+            } else {
+                // 添加点踩，如果已点赞则取消点赞
+                isDisliked = true;
+                dislikeCount++;
+                dislikeBtn.classList.add('active');
+                
+                if (isLiked) {
+                    isLiked = false;
+                    likeCount--;
+                    likeBtn.classList.remove('active');
+                }
+            }
+            
+            likeCountEl.textContent = likeCount;
+            dislikeCountEl.textContent = dislikeCount;
+        }
+
+        // ========== 评价弹窗功能 ==========
+        const commentModal = document.getElementById('commentModal');
+        const commentModalClose = document.getElementById('commentModalClose');
+        const commentInput = document.getElementById('commentInput');
+
+        function openCommentModal() {
+            commentModal.style.display = 'flex';
+            commentInput.value = '';
+            commentInput.focus();
+        }
+
+        function closeCommentModal() {
+            commentModal.style.display = 'none';
+        }
+
+        function submitComment() {
+            const comment = commentInput.value.trim();
+            if (!comment) {
+                showCustomAlert('提示', '请输入评价内容！');
+                return;
+            }
+            showCustomAlert('提交成功', '评价内容：' + comment, function() {
+                closeCommentModal();
+            });
+        }
+
+        // 关闭评价弹窗
+        commentModalClose.addEventListener('click', closeCommentModal);
+
+        // 点击弹窗外区域关闭评价弹窗
+        window.addEventListener('click', (e) => {
+            if (e.target === commentModal) {
+                closeCommentModal();
+            }
+        });
+
+        // 回车键提交评价
+        commentInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                submitComment();
+            }
+        });
+
+        // ========== 文件夹上传和分组功能 ==========
+        let uploadedFiles = {};
+
+        // 初始化样例数据
+        function initSampleData() {
+            // 添加张三的样例报告
+            uploadedFiles['张三'] = [
+                {
+                    name: '张三-110101199001011234-20240115.docx',
+                    size: 1024 * 1024,
+                    file: null,
+                    isHistory: false
+                },
+                {
+                    name: '张三-110101199001011234-20240220.docx',
+                    size: 1024 * 1024,
+                    file: null,
+                    isHistory: false
+                }
+            ];
+
+            // 添加李四的样例报告
+            uploadedFiles['李四'] = [
+                {
+                    name: '李四-110101198505152345-20240110.docx',
+                    size: 1024 * 1024,
+                    file: null,
+                    isHistory: false
+                }
+            ];
+
+            // 渲染文件列表
+            renderFileGroups();
+        }
+
+        // 提取人名：匹配文件名中的中文人名（2-4个汉字），忽略后面的数字串
+        function extractPersonName(fileName) {
+            // 移除文件扩展名
+            const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+            // 匹配开头的2-4个中文汉字（人名）
+            const match = nameWithoutExt.match(/^[\u4e00-\u9fa5]{2,4}/);
+            return match ? match[0] : '未分组';
+        }
+
+        function handleFolderUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            // 按人名分组
+            for (let file of files) {
+                const fileName = file.name;
+                // 提取人名作为分组依据
+                const personName = extractPersonName(fileName);
+                
+                if (!uploadedFiles[personName]) {
+                    uploadedFiles[personName] = [];
+                }
+                uploadedFiles[personName].push({
+                    name: fileName,
+                    size: file.size,
+                    file: file
+                });
+            }
+
+            // 刷新文件列表显示
+            renderFileGroups();
+        }
+
+        function renderFileGroups() {
+            const container = document.getElementById('fileGroupList');
+            container.innerHTML = '';
+
+            // 计算统计数据
+            let groupCount = 0;
+            let fileCount = 0;
+
+            for (let [groupName, files] of Object.entries(uploadedFiles)) {
+                if (files.length === 0) continue;
+
+                groupCount++;
+                fileCount += files.length;
+
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'file-group expanded';
+                groupDiv.dataset.group = groupName;
+
+                const filesHtml = files.map((file, index) => {
+                    const isHistory = file.isHistory === true;
+                    const historyBadge = isHistory ? '<span style="background-color: #fa8c16; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 8px;">历史</span>' : '';
+                    const itemStyle = isHistory ? 'background-color: #fff7e6; border-left: 3px solid #fa8c16;' : '';
+                    return `
+                    <div class="report-item" data-file="${file.name}" style="${itemStyle}">
+                        <div class="info">
+                            ${historyBadge}<span class="file-name">${file.name}</span>
+                        </div>
+                        <div class="operate">
+                            <button class="operate-btn view-btn" onclick="viewFile('${file.name}')">查看</button>
+                            <button class="operate-btn delete-btn" onclick="deleteFileFromGroup('${groupName}', ${index})">删除</button>
+                        </div>
+                    </div>
+                `}).join('');
+
+                groupDiv.innerHTML = `
+                    <div class="file-group-header" onclick="toggleGroup(this)">
+                        <span class="group-name">${groupName}</span>
+                        <div class="group-actions">
+                            <span class="group-count">${files.length}份</span>
+                            <button class="group-delete-btn" onclick="event.stopPropagation(); deleteGroup('${groupName}')" title="删除分组">×</button>
+                        </div>
+                    </div>
+                    <div class="file-group-content">
+                        ${filesHtml}
+                    </div>
+                `;
+
+                container.appendChild(groupDiv);
+            }
+
+            // 更新统计信息
+            updateUploadStats(groupCount, fileCount);
+        }
+
+        function updateUploadStats(groupCount, fileCount) {
+            const groupCountEl = document.getElementById('groupCount');
+            const fileCountEl = document.getElementById('fileCount');
+            
+            if (groupCountEl) groupCountEl.textContent = groupCount;
+            if (fileCountEl) fileCountEl.textContent = fileCount;
+        }
+
+        function toggleGroup(header) {
+            const group = header.parentElement;
+            group.classList.toggle('expanded');
+        }
+
+        function deleteFileFromGroup(groupName, index) {
+            showCustomConfirm('确认删除', '确定要删除这个文件吗？', function() {
+                uploadedFiles[groupName].splice(index, 1);
+                if (uploadedFiles[groupName].length === 0) {
+                    delete uploadedFiles[groupName];
+                }
+                renderFileGroups();
+            });
+        }
+
+        function deleteGroup(groupName) {
+            showCustomConfirm('确认删除', `确定要删除"${groupName}"分组及其所有文件吗？`, function() {
+                delete uploadedFiles[groupName];
+                renderFileGroups();
+            });
+        }
+
+        function clearAllFiles() {
+            showCustomConfirm('确认清空', '确定要清空所有文件吗？', function() {
+                uploadedFiles = {};
+                // 清空文件列表容器（包括静态HTML中的默认数据）
+                document.getElementById('fileGroupList').innerHTML = '';
+                // 更新统计信息为0
+                updateUploadStats(0, 0);
+                // 清空右侧报告预览
+                clearReportPreview();
+            });
+        }
+
+        function clearReportPreview() {
+            const reportDisplayArea = document.getElementById('reportDisplayArea');
+            const timeEstimate = document.getElementById('timeEstimate');
+            const progressContainer = document.getElementById('progressContainer');
+            
+            // 清空报告内容
+            reportDisplayArea.innerHTML = '';
+            reportDisplayArea.classList.add('empty');
+            reportDisplayArea.classList.remove('generating');
+            
+            // 隐藏进度和预估时间
+            timeEstimate.style.display = 'none';
+            progressContainer.style.display = 'none';
+        }
+
+        function viewFile(fileName) {
+            showCustomAlert('查看文件', '文件名称：' + fileName);
+        }
+
+        // ========== 生成对比报告进度功能 ==========
+        function generateReport() {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressText = document.getElementById('progressText');
+            const generateBtn = document.getElementById('generateReportBtn');
+            const reportDisplayArea = document.getElementById('reportDisplayArea');
+            const timeEstimate = document.getElementById('timeEstimate');
+            const estimateValue = document.getElementById('estimateValue');
+
+            // 获取所有分组
+            const groups = Object.keys(uploadedFiles).filter(key => uploadedFiles[key].length >= 2);
+            if (groups.length === 0) {
+                showCustomAlert('提示', '请至少上传一个包含2份及以上文件的分组！');
+                return;
+            }
+
+            // 计算预估时间（每组约10秒）
+            const estimatedSeconds = groups.length * 10;
+            const minutes = Math.floor(estimatedSeconds / 60);
+            const seconds = estimatedSeconds % 60;
+            const timeText = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
+
+            // 禁用按钮
+            generateBtn.disabled = true;
+            generateBtn.textContent = '生成中...';
+
+            // 显示预估时间
+            timeEstimate.style.display = 'flex';
+            estimateValue.textContent = `共${groups.length}组对比，预计需要 ${timeText}`;
+
+            // 显示进度容器
+            progressContainer.style.display = 'block';
+
+            // 清空报告展示区
+            reportDisplayArea.classList.remove('empty');
+            reportDisplayArea.classList.add('generating');
+            reportDisplayArea.innerHTML = '';
+
+            // 进度阶段
+            const stages = [
+                { percent: 10, text: '正在读取文档...' },
+                { percent: 25, text: '正在解析数据...' },
+                { percent: 45, text: '正在对比分析...' },
+                { percent: 65, text: '正在生成图表...' },
+                { percent: 80, text: '正在整合报告...' },
+                { percent: 100, text: '报告生成完成！' }
+            ];
+
+            let currentStage = 0;
+
+            function updateProgress() {
+                if (currentStage >= stages.length) {
+                    // 完成
+                    setTimeout(() => {
+                        // 隐藏进度条和预估时间
+                        progressContainer.style.display = 'none';
+                        timeEstimate.style.display = 'none';
+
+                        // 恢复按钮
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = '生成对比报告';
+                        progressFill.style.width = '0%';
+                        progressPercent.textContent = '0%';
+
+                        // 显示多组报告内容
+                        reportDisplayArea.classList.remove('generating');
+                        reportDisplayArea.innerHTML = generateMultiResults(groups);
+
+                        showCustomAlert('生成成功', `共生成 ${groups.length} 组对比报告`);
+                    }, 500);
+                    return;
+                }
+
+                const stage = stages[currentStage];
+                progressFill.style.width = stage.percent + '%';
+                progressPercent.textContent = stage.percent + '%';
+                progressText.textContent = stage.text;
+
+                currentStage++;
+                setTimeout(updateProgress, 800);
+            }
+
+            updateProgress();
+        }
+
+        function generateMultiResults(groups) {
+            const resultsHtml = groups.map((groupName, index) => {
+                const files = uploadedFiles[groupName];
+
+                // 检查是否包含历史报告
+                const hasHistory = files.some(f => f.isHistory === true);
+                const historyIndicator = hasHistory ? '<span style="background-color: #fa8c16; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 10px;">包含历史报告</span>' : '';
+                
+                return `
+                    <div class="result-card" data-group="${groupName}" style="${hasHistory ? 'border: 2px solid #fa8c16;' : ''}">
+                        <div class="result-card-header">
+                            <span class="result-title">${groupName} 对比分析报告${historyIndicator}</span>
+                            <span class="result-files">${files.length}个文件</span>
+                        </div>
+                        <div class="result-card-content">
+                            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                                <thead>
+                                    <tr style="background: #f5f7fa;">
+                                        <th style="border: 1px solid #ddd; padding: 6px; font-size: 12px;">指标</th>
+                                        ${files.map(f => {
+                                            const isHistory = f.isHistory === true;
+                                            const thStyle = isHistory ? 'background-color: #fff7e6;' : '';
+                                            return `<th style="border: 1px solid #ddd; padding: 6px; font-size: 12px; ${thStyle}">${f.name.replace('.docx', '').split('_').pop()}${isHistory ? '<span style="color: #fa8c16; font-size: 10px;">(历史)</span>' : ''}</th>`;
+                                        }).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 6px; font-size: 12px;">营业收入</td>
+                                        ${files.map(f => {
+                                            const isHistory = f.isHistory === true;
+                                            const tdStyle = isHistory ? 'background-color: #fff7e6;' : '';
+                                            return `<td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 12px; ${tdStyle}">${(5000 + Math.random() * 2000).toFixed(0)}万</td>`;
+                                        }).join('')}
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 6px; font-size: 12px;">净利润</td>
+                                        ${files.map(f => {
+                                            const isHistory = f.isHistory === true;
+                                            const tdStyle = isHistory ? 'background-color: #fff7e6;' : '';
+                                            return `<td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 12px; ${tdStyle}">${(400 + Math.random() * 300).toFixed(0)}万</td>`;
+                                        }).join('')}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="result-card-actions">
+                            <button class="btn-like" onclick="toggleResultLike(this)">
+                                <span class="like-icon">👍</span> 点赞
+                            </button>
+                            <button class="btn-dislike" onclick="toggleResultDislike(this)">
+                                <span class="dislike-icon">👎</span> 点踩
+                            </button>
+                            <button class="btn-default" onclick="openResultComment('${groupName}')">评价</button>
+                            <button class="btn-secondary" onclick="regenerateReport('${groupName}')">重新对比</button>
+                            <button class="btn-default" onclick="downloadSingleReport('${groupName}')">下载</button>
+                            <button class="btn-default" onclick="printSingleReport('${groupName}')">打印</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 添加批量操作栏
+            const batchActionsHtml = `
+                <div class="batch-actions-bar" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="font-size: 14px; color: #333; font-weight: bold;">
+                        共生成 ${groups.length} 组对比报告
+                    </div>
+                    <button class="btn-primary" onclick="batchDownloadAll()">
+                        批量下载全部
+                    </button>
+                </div>
+            `;
+
+            return `<div class="multi-results-container">${batchActionsHtml}${resultsHtml}</div>`;
+        }
+
+        function downloadSingleReport(groupName) {
+            showCustomAlert('下载报告', `正在下载 "${groupName}" 对比报告...`);
+        }
+
+        function printSingleReport(groupName) {
+            showCustomAlert('打印报告', `正在打印 "${groupName}" 对比报告...`);
+        }
+
+        function batchDownloadAll() {
+            const resultCards = document.querySelectorAll('.result-card');
+            const groupNames = Array.from(resultCards).map(card => card.dataset.group);
+            if (groupNames.length === 0) {
+                showCustomAlert('提示', '没有可下载的报告！');
+                return;
+            }
+            showCustomAlert('批量下载', `即将下载以下报告：<br>${groupNames.join('<br>')}`);
+        }
+
+        function toggleResultLike(btn) {
+            btn.classList.toggle('active');
+            const card = btn.closest('.result-card');
+            const dislikeBtn = card.querySelector('.btn-dislike');
+            if (dislikeBtn) dislikeBtn.classList.remove('active');
+        }
+
+        function toggleResultDislike(btn) {
+            btn.classList.toggle('active');
+            const card = btn.closest('.result-card');
+            const likeBtn = card.querySelector('.btn-like');
+            if (likeBtn) likeBtn.classList.remove('active');
+        }
+
+        function openResultComment(groupName) {
+            showCustomPrompt(`请输入对 "${groupName}" 对比报告的评价：`, function(comment) {
+                if (comment && comment.trim()) {
+                    showCustomAlert('评价提交成功！', `报告：${groupName}\n评价：${comment}`);
+                }
+            });
+        }
+
+        // ========== 自定义弹窗功能 ==========
+        let customModalCallback = null;
+
+        function showCustomAlert(title, message, callback) {
+            const modal = document.getElementById('customModal');
+            const header = document.getElementById('customModalHeader');
+            const body = document.getElementById('customModalBody');
+            const footer = document.getElementById('customModalFooter');
+
+            header.textContent = title;
+            body.innerHTML = message.replace(/\n/g, '<br>');
+            footer.innerHTML = '<button class="btn-confirm" onclick="closeCustomModal()">确定</button>';
+            
+            customModalCallback = callback || null;
+            modal.classList.add('show');
+        }
+
+        function showCustomConfirm(title, message, onConfirm, onCancel) {
+            const modal = document.getElementById('customModal');
+            const header = document.getElementById('customModalHeader');
+            const body = document.getElementById('customModalBody');
+            const footer = document.getElementById('customModalFooter');
+
+            header.textContent = title;
+            body.innerHTML = message.replace(/\n/g, '<br>');
+            footer.innerHTML = `
+                <button class="btn-cancel" onclick="closeCustomModal(false)">取消</button>
+                <button class="btn-confirm" onclick="closeCustomModal(true)">确定</button>
+            `;
+            
+            customModalCallback = function(result) {
+                if (result && onConfirm) onConfirm();
+                else if (!result && onCancel) onCancel();
+            };
+            modal.classList.add('show');
+        }
+
+        function showCustomPrompt(message, callback) {
+            const modal = document.getElementById('customModal');
+            const header = document.getElementById('customModalHeader');
+            const body = document.getElementById('customModalBody');
+            const footer = document.getElementById('customModalFooter');
+
+            header.textContent = '请输入';
+            body.innerHTML = `
+                <div>${message}</div>
+                <input type="text" class="custom-modal-input" id="customModalInput" placeholder="请输入内容...">
+            `;
+            footer.innerHTML = `
+                <button class="btn-cancel" onclick="closeCustomModal(false)">取消</button>
+                <button class="btn-confirm" onclick="closeCustomModal(true)">确定</button>
+            `;
+            
+            customModalCallback = function(result) {
+                const input = document.getElementById('customModalInput');
+                if (result && callback) callback(input ? input.value : '');
+            };
+            modal.classList.add('show');
+            
+            // 自动聚焦输入框
+            setTimeout(() => {
+                const input = document.getElementById('customModalInput');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function closeCustomModal(result) {
+            const modal = document.getElementById('customModal');
+            modal.classList.remove('show');
+            
+            if (customModalCallback) {
+                const callback = customModalCallback;
+                customModalCallback = null;
+                callback(result);
+            }
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('customModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCustomModal(false);
+            }
+        });
+
+        // 回车键确认
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('customModal').classList.contains('show')) {
+                const input = document.getElementById('customModalInput');
+                if (input && document.activeElement === input) {
+                    closeCustomModal(true);
+                }
+            }
+        });
+
+        // ========== 从URL参数加载人员报告 ==========
+        // 文档库数据（与文档管理页面保持一致）
+        const documentLibraryData = [
+            {
+                id: 1,
+                name: '张三',
+                idCard: '110101199001011234',
+                reports: [
+                    { fileName: '张三-110101199001011234-20240115.docx', date: '2024-01-15' },
+                    { fileName: '张三-110101199001011234-20240220.docx', date: '2024-02-20' },
+                    { fileName: '张三-110101199001011234-20240318.docx', date: '2024-03-18' }
+                ]
+            },
+            {
+                id: 2,
+                name: '李四',
+                idCard: '110101198505152345',
+                reports: [
+                    { fileName: '李四-110101198505152345-20240110.docx', date: '2024-01-10' },
+                    { fileName: '李四-110101198505152345-20240215.docx', date: '2024-02-15' }
+                ]
+            },
+            {
+                id: 3,
+                name: '王五',
+                idCard: '110101199212203456',
+                reports: [
+                    { fileName: '王五-110101199212203456-20240301.docx', date: '2024-03-01' }
+                ]
+            },
+            {
+                id: 4,
+                name: '赵六',
+                idCard: '110101198808084567',
+                reports: [
+                    { fileName: '赵六-110101198808084567-20240120.docx', date: '2024-01-20' },
+                    { fileName: '赵六-110101198808084567-20240225.docx', date: '2024-02-25' },
+                    { fileName: '赵六-110101198808084567-20240330.docx', date: '2024-03-30' }
+                ]
+            }
+        ];
+
+        // 页面加载时检查URL参数
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const personIds = urlParams.get('personIds');
+            
+            if (personIds) {
+                // 解析人员ID列表
+                const ids = personIds.split(',').map(id => parseInt(id));
+                
+                // 查找对应的人员数据
+                const selectedPersons = documentLibraryData.filter(p => ids.includes(p.id));
+                
+                if (selectedPersons.length > 0) {
+                    // 清空现有文件
+                    uploadedFiles = {};
+                    
+                    // 将选中人员的报告添加到 uploadedFiles
+                    selectedPersons.forEach(person => {
+                        // 使用人名作为分组名
+                        uploadedFiles[person.name] = person.reports.map(report => ({
+                            name: report.fileName,
+                            size: 1024 * 1024, // 模拟文件大小 1MB
+                            file: null, // 兼容原有数据结构
+                            isHistory: false // 标记为非历史报告
+                        }));
+                    });
+                    
+                    // 延迟渲染，确保DOM已准备好
+                    setTimeout(function() {
+                        // 渲染文件列表
+                        renderFileGroups();
+                        
+                        // 显示提示
+                        const names = selectedPersons.map(p => p.name).join('、');
+                        showCustomAlert('已加载报告', `已成功加载 ${selectedPersons.length} 位人员的报告：${names}`);
+                    }, 100);
+                }
+            } else {
+                // 没有URL参数时，加载样例数据
+                setTimeout(function() {
+                    initSampleData();
+                }, 500);
+            }
+        });
+
+        // ========== 历史报告功能 ==========
+        // 历史报告数据（模拟历史数据库）
+        const historyReportsData = [
+            {
+                id: 1,
+                name: '张三',
+                idCard: '110101199001011234',
+                reports: [
+                    { fileName: '张三-110101199001011234-20230115.docx', date: '2023-01-15' },
+                    { fileName: '张三-110101199001011234-20230220.docx', date: '2023-02-20' },
+                    { fileName: '张三-110101199001011234-20230318.docx', date: '2023-03-18' }
+                ]
+            },
+            {
+                id: 2,
+                name: '李四',
+                idCard: '110101198505152345',
+                reports: [
+                    { fileName: '李四-110101198505152345-20230110.docx', date: '2023-01-10' },
+                    { fileName: '李四-110101198505152345-20230215.docx', date: '2023-02-15' }
+                ]
+            },
+            {
+                id: 3,
+                name: '王五',
+                idCard: '110101199212203456',
+                reports: [
+                    { fileName: '王五-110101199212203456-20230301.docx', date: '2023-03-01' },
+                    { fileName: '王五-110101199212203456-20230410.docx', date: '2023-04-10' }
+                ]
+            },
+            {
+                id: 4,
+                name: '赵六',
+                idCard: '110101198808084567',
+                reports: [
+                    { fileName: '赵六-110101198808084567-20230120.docx', date: '2023-01-20' },
+                    { fileName: '赵六-110101198808084567-20230225.docx', date: '2023-02-25' }
+                ]
+            }
+        ];
+
+        // 加入历史报告功能
+        function addHistoryReports() {
+            // 获取当前已上传文件的人员信息（人名+身份证号）
+            const currentPersons = [];
+            
+            // 从uploadedFiles中提取人员信息
+            for (let [groupName, files] of Object.entries(uploadedFiles)) {
+                if (files.length > 0) {
+                    // 从文件名中提取身份证信息
+                    const firstFile = files[0].name;
+                    const idCardMatch = firstFile.match(/\d{18}/);
+                    if (idCardMatch) {
+                        currentPersons.push({
+                            name: groupName,
+                            idCard: idCardMatch[0]
+                        });
+                    }
+                }
+            }
+            
+            if (currentPersons.length === 0) {
+                showCustomAlert('提示', '请先上传文件，系统将根据人名和身份证号匹配历史报告');
+                return;
+            }
+            
+            // 匹配历史报告
+            let matchedCount = 0;
+            let addedCount = 0;
+            const matchedDetails = [];
+            
+            currentPersons.forEach(currentPerson => {
+                // 在人名和身份证号都匹配的情况下查找历史报告
+                const historyPerson = historyReportsData.find(h => 
+                    h.name === currentPerson.name && h.idCard === currentPerson.idCard
+                );
+                
+                if (historyPerson && historyPerson.reports.length > 0) {
+                    matchedCount++;
+                    
+                    // 确保该人员的分组存在
+                    if (!uploadedFiles[currentPerson.name]) {
+                        uploadedFiles[currentPerson.name] = [];
+                    }
+                    
+                    // 添加历史报告（去重）
+                    historyPerson.reports.forEach(historyReport => {
+                        const exists = uploadedFiles[currentPerson.name].some(
+                            f => f.name === historyReport.fileName
+                        );
+                        
+                        if (!exists) {
+                            uploadedFiles[currentPerson.name].push({
+                                name: historyReport.fileName,
+                                size: 1024 * 1024,
+                                file: null,
+                                isHistory: true // 标记为历史报告
+                            });
+                            addedCount++;
+                        }
+                    });
+                    
+                    matchedDetails.push(`${currentPerson.name} (${historyPerson.reports.length}份)`);
+                }
+            });
+            
+            if (matchedCount > 0) {
+                // 重新渲染文件列表
+                renderFileGroups();
+                
+                showCustomAlert(
+                    '历史报告已加入',
+                    `成功匹配 ${matchedCount} 位人员的历史报告，共加入 ${addedCount} 份报告：<br><br>${matchedDetails.join('<br>')}`
+                );
+            } else {
+                showCustomAlert('提示', '未找到匹配的历史报告，请确保已上传文件且人名和身份证号正确');
+            }
+        }
+
+        // 重新对比功能
+        function regenerateReport(groupName) {
+            showCustomConfirm('重新对比', `确定要重新生成 "${groupName}" 的对比报告吗？`, function() {
+                // 显示进度条
+                const progressContainer = document.getElementById('progressContainer');
+                const progressFill = document.getElementById('progressFill');
+                const progressPercent = document.getElementById('progressPercent');
+                const progressText = document.getElementById('progressText');
+                const reportDisplayArea = document.getElementById('reportDisplayArea');
+                
+                progressContainer.style.display = 'block';
+                reportDisplayArea.classList.add('generating');
+                
+                // 模拟进度
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressFill.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+                    
+                    if (progress < 30) {
+                        progressText.textContent = '正在读取文档...';
+                    } else if (progress < 60) {
+                        progressText.textContent = '正在对比分析...';
+                    } else if (progress < 90) {
+                        progressText.textContent = '正在生成报告...';
+                    } else {
+                        progressText.textContent = '即将完成...';
+                    }
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            reportDisplayArea.classList.remove('generating');
+                            
+                            // 重新生成该组的报告内容
+                            const groups = Object.keys(uploadedFiles).filter(g => g === groupName);
+                            if (groups.length > 0) {
+                                reportDisplayArea.innerHTML = generateMultiResults(groups);
+                            }
+                            
+                            showCustomAlert('生成成功', `"${groupName}" 对比报告已重新生成`);
+                        }, 500);
+                    }
+                }, 200);
+            });
+        }
+    </script>
+</body>
+</html>

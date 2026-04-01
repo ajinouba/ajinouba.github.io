@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询记录 - 报告对比分析平台</title>
+    <style>
+        /* 全局样式重置（与主页面保持一致） */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* 布局容器 */
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 左侧导航栏（与主页面保持一致，查询记录菜单激活） */
+        .sidebar {
+            width: 220px;
+            background-color: #1e68c4;
+            color: #fff;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .sidebar .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #2979d1;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #195bb8;
+        }
+
+        .sidebar .nav-menu {
+            padding-top: 20px;
+        }
+
+        .sidebar .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-item:hover {
+            background-color: #2979d1;
+        }
+
+        .sidebar .nav-item.active {
+            background-color: #2979d1;
+        }
+
+        /* 右侧主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* 顶部工具栏（与主页面保持一致） */
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header .title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e68c4;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .user-info img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .header .btn {
+            padding: 6px 12px;
+            background-color: #1e68c4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+
+        .header .btn:hover {
+            background-color: #2979d1;
+        }
+
+        /* 搜索筛选区域 */
+        .search-filter {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-filter .form-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-filter label {
+            margin-right: 8px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .search-filter input, .search-filter select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            min-width: 180px;
+        }
+
+        .search-filter input:focus, .search-filter select:focus {
+            outline: none;
+            border-color: #1e68c4;
+        }
+
+        .search-filter .btn-group {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-filter .btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-search {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .btn-search:hover {
+            background-color: #2979d1;
+        }
+
+        .btn-reset {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* 记录列表卡片 */
+        .record-card {
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .record-card .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e68c4;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-card .total-count {
+            font-size: 12px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        /* 记录列表样式 */
+        .record-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .record-list th {
+            background-color: #f5f7fa;
+            color: #333;
+            font-weight: bold;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #eee;
+            font-size: 13px;
+        }
+
+        .record-list td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .record-list tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .record-list tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 文档标签样式 */
+        .doc-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #e8f0fe;
+            color: #1e68c4;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* 操作按钮样式 */
+        .operate-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+            transition: all 0.2s;
+        }
+
+        .view-btn {
+            background-color: #e8f0fe;
+            color: #1e68c4;
+        }
+
+        .view-btn:hover {
+            background-color: #1e68c4;
+            color: #fff;
+        }
+
+        .delete-btn {
+            background-color: #fef2f2;
+            color: #e63946;
+        }
+
+        .delete-btn:hover {
+            background-color: #e63946;
+            color: #fff;
+        }
+
+        .export-btn {
+            background-color: #f0f9ff;
+            color: #0284c7;
+        }
+
+        .export-btn:hover {
+            background-color: #0284c7;
+            color: #fff;
+        }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(.disabled):not(.active) {
+            border-color: #1e68c4;
+            color: #1e68c4;
+        }
+
+        .pagination-btn.active {
+            background-color: #1e68c4;
+            color: #fff;
+            border-color: #1e68c4;
+        }
+
+        .pagination-btn.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            border-color: #eee;
+        }
+
+        /* 查看报告弹窗（复用主页面样式） */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            width: 85%;
+            max-width: 900px;
+            border-radius: 8px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background-color: #fef2f2;
+            color: #e63946;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e68c4;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 报告详情样式 */
+        .report-detail {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .report-detail .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .report-detail .detail-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+            display: inline-block;
+            min-width: 80px;
+        }
+
+        .report-detail .content-preview {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .report-detail .content-preview h3 {
+            color: #1e68c4;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .report-detail .content-preview p {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+
+        /* 互动记录样式 */
+        .interaction-record {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .record-item {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .like-record {
+            background-color: #e3f2fd;
+            color: #1e68c4;
+            border: 1px solid #1e68c4;
+        }
+
+        .dislike-record {
+            background-color: #ffebee;
+            color: #e53935;
+            border: 1px solid #e53935;
+        }
+
+        /* 评价内容样式 */
+        .comment-content {
+            background-color: #f5f7fa;
+            padding: 12px 15px;
+            border-radius: 4px;
+            border-left: 3px solid #1e68c4;
+            margin-top: 8px;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* 导出按钮区域 */
+        .export-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+
+        .btn-export {
+            padding: 8px 16px;
+            background-color: #1e68c4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-export:hover {
+            background-color: #2979d1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧导航栏（查询记录菜单激活） -->
+        <div class="sidebar">
+            <div class="logo">报告对比分析平台</div>
+            <div class="nav-menu">
+                <div class="nav-item" onclick="location.href='index.html'">
+                    <span>报告分析</span>
+                </div>
+                <div class="nav-item" onclick="location.href='文档管理.html'">
+                    <span>文档管理</span>
+                </div>
+                <div class="nav-item active" onclick="location.href='查询记录.html'">
+                    <span>查询记录</span>
+                </div>
+                <div class="nav-item" onclick="location.href='评价管理.html'">
+                    <span>评价管理</span>
+                </div>
+                <div class="nav-item">
+                    <span>系统设置</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧主内容区 -->
+        <div class="main-content">
+            <!-- 顶部工具栏 -->
+            <div class="header">
+                <div class="title">对比报告历史记录</div>
+                <div class="user-info">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTY4YzQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxOCIgY3k9IjE0IiByPSIxMCIgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzFlNjhjNDtzdHJva2Utd2lkdGg6MiIvPjxwYXRoIGQ9Ik0yOCAyOGgtMTZBMiAyIDAgMCAxIDEwIDI2YzAgMi4yMSAxLjc5IDQgNCA0aDEyYTIgMiAwIDAgMCAyLTJWMjh6IiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMWU2OGM0O3N0cm9rZS13aWR0aDoyIi8+PC9zdmc+" alt="用户头像">
+                    <span>管理员</span>
+                    <button class="btn">退出</button>
+                </div>
+            </div>
+
+            <!-- 搜索筛选区域 -->
+            <div class="search-filter">
+                <div class="form-item">
+                    <label>报告名称：</label>
+                    <input type="text" id="reportName" placeholder="请输入报告名称关键词">
+                </div>
+                <div class="form-item">
+                    <label>生成时间：</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-item">
+                    <label>至：</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-item">
+                    <label>生成文档：</label>
+                    <select id="sourceDoc">
+                        <option value="">全部</option>
+                        <option value="2022">包含2022年度报告</option>
+                        <option value="2023">包含2023年度报告</option>
+                        <option value="2024">包含2024年度报告</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-search">查询</button>
+                    <button class="btn btn-reset">重置</button>
+                </div>
+            </div>
+
+            <!-- 记录列表卡片 -->
+            <div class="record-card">
+                <div class="card-title">
+                    历史记录列表
+                    <span class="total-count">共 8 条记录</span>
+                </div>
+
+                <!-- 记录列表 -->
+                <table class="record-list">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>报告名称</th>
+                            <th>生成时间</th>
+                            <th>生成依据文档</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-id="1">
+                            <td>1</td>
+                            <td>2022-2024 对比报告</td>
+                            <td>2025-01-15 14:30:25</td>
+                            <td>
+                                <span class="doc-tag">2022年度分析报告.docx</span>
+                                <span class="doc-tag">2023年度分析报告.docx</span>
+                                <span class="doc-tag">2024年度分析报告.docx</span>
+                            </td>
+                            <td>
+                                <button class="operate-btn view-btn">查看</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr data-id="2">
+                            <td>2</td>
+                            <td>2022-2023 对比报告</td>
+                            <td>2025-01-14 10:15:42</td>
+                            <td>
+                                <span class="doc-tag">2022年度分析报告.docx</span>
+                                <span class="doc-tag">2023年度分析报告.docx</span>
+                            </td>
+                            <td>
+                                <button class="operate-btn view-btn">查看</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr data-id="3">
+                            <td>3</td>
+                            <td>2023-2024 对比报告</td>
+                            <td>2025-01-12 16:45:18</td>
+                            <td>
+                                <span class="doc-tag">2023年度分析报告.docx</span>
+                                <span class="doc-tag">2024年度分析报告.docx</span>
+                            </td>
+                            <td>
+                                <button class="operate-btn view-btn">查看</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr data-id="4">
+                            <td>4</td>
+                            <td>2022-2023-2024 初版</td>
+                            <td>2025-01-10 09:20:33</td>
+                            <td>
+                                <span class="doc-tag">2022年度分析报告.docx</span>
+                                <span class="doc-tag">2023年度分析报告.docx</span>
+                                <span class="doc-tag">2024年度分析报告.docx</span>
+                            </td>
+                            <td>
+                                <button class="operate-btn view-btn">查看</button>
+                                <button class="operate-btn export-btn">导出</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr data-id="5">
+                            <td>5</td>
+                            <td>2024年度单独分析报告</td>
+                            <td>2025-01-08 11:50:12</td>
+                            <td>
+                                <span class="doc-tag">2024年度分析报告.docx</span>
+                            </td>
+                            <td>
+                                <button class="operate-btn view-btn">查看</button>
+                                <button class="operate-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- 分页控件 -->
+                <div class="pagination">
+                    <button class="pagination-btn disabled">«</button>
+                    <button class="pagination-btn disabled">‹</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">›</button>
+                    <button class="pagination-btn">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看报告弹窗 -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div class="modal-title" id="modalTitle">报告详情</div>
+            <div class="report-detail" id="reportDetail">
+                <!-- 报告详情内容将动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟报告详情数据
+        const reportDetailData = {
+            '1': {
+                name: '2022-2024 对比报告',
+                createTime: '2025-01-15 14:30:25',
+                sourceDocs: ['2022年度分析报告.docx', '2023年度分析报告.docx', '2024年度分析报告.docx'],
+                content: `
+                    <h3>2022-2024年度分析报告对比总览</h3>
+                    <p>本报告基于上传的2022、2023、2024三个年度的分析报告，通过AI模型从核心经营数据、市场战略布局、风险评估结论三个维度进行对比分析，旨在清晰呈现近三年的发展趋势与差异点。</p>
+                    <h3>一、核心经营数据对比</h3>
+                    <p>近三年营业收入与净利润均呈稳步增长态势，且净利润增速高于营收增速，核心驱动因素为成本费用率持续下降；市场占有率提升显著，较2022年增长6.2个百分点，市场扩张策略成效显著。</p>
+                    <h3>二、市场战略布局差异</h3>
+                    <p>1. 2022年战略核心：区域深耕，聚焦华东、华南两大核心市场；2. 2023年战略核心：品类拓展，新增高端定制化服务；3. 2024年战略核心：数字化转型，搭建线上智能服务平台。</p>
+                    <h3>三、总结</h3>
+                    <p>2022-2024年企业经营呈稳步增长态势，战略方向从"区域深耕"向"数字化转型"逐步升级，报告体系也从"业绩复盘"向"战略指引"转型。</p>
+                `,
+                interactionType: 'like',
+                comment: '报告数据对比清晰，战略分析维度全面，建议增加2025年预测数据，数字化转型部分可以补充投入产出比分析。',
+                exportCount: 15
+            },
+            '2': {
+                name: '2022-2023 对比报告',
+                createTime: '2025-01-14 10:15:42',
+                sourceDocs: ['2022年度分析报告.docx', '2023年度分析报告.docx'],
+                content: `
+                    <h3>2022-2023年度分析报告对比</h3>
+                    <p>2022-2023年公司营业收入从5280万元增长至5914万元，净利润从485万元增长至562万元，成本费用率从88.5%下降至87.2%。</p>
+                    <p>战略层面，2022年聚焦区域深耕，2023年转向品类拓展，新增高端定制化服务，瞄准高净值客户群体。</p>
+                    <p>风险方面，2023年新增市场竞争加剧风险，占比40%，原材料价格风险有所缓解。</p>
+                `,
+                interactionType: 'like',
+                comment: '对比分析很到位，数据呈现清晰，对决策有很好的参考价值。',
+                exportCount: 8
+            },
+            '3': {
+                name: '2023-2024 对比报告',
+                createTime: '2025-01-12 16:45:18',
+                sourceDocs: ['2023年度分析报告.docx', '2024年度分析报告.docx'],
+                content: `
+                    <h3>2023-2024年度分析报告对比</h3>
+                    <p>2023-2024年公司营业收入从5914万元增长至6800万元，净利润从562万元增长至720万元，增长幅度显著提升。</p>
+                    <p>2024年核心战略转向数字化转型，投入200万元搭建线上智能服务平台，实现订单、售后、数据分析一体化管理。</p>
+                    <p>风险评估显示，数字化转型投入回报周期风险成为2024年主要风险点，占比30%。</p>
+                `,
+                interactionType: 'like',
+                comment: '数字化转型部分分析深入，风险评估全面，建议补充同行业对比数据。',
+                exportCount: 12
+            },
+            '4': {
+                name: '2022-2023-2024 初版',
+                createTime: '2025-01-10 09:20:33',
+                sourceDocs: ['2022年度分析报告.docx', '2023年度分析报告.docx', '2024年度分析报告.docx'],
+                content: `
+                    <h3>2022-2023-2024年度分析报告对比（初版）</h3>
+                    <p>初版对比报告主要聚焦核心经营数据的对比分析，包含营业收入、净利润、成本费用率、市场占有率等核心指标的三年变化趋势。</p>
+                    <p>本版报告为初稿，后续将补充战略布局、风险评估等维度的深度分析。</p>
+                `,
+                interactionType: 'dislike',
+                comment: '作为初版已经很不错了，期待后续完善版本。',
+                exportCount: 5
+            },
+            '5': {
+                name: '2024年度单独分析报告',
+                createTime: '2025-01-08 11:50:12',
+                sourceDocs: ['2024年度分析报告.docx'],
+                content: `
+                    <h3>2024年度分析报告解读</h3>
+                    <p>2024年公司实现营业收入6800万元，净利润720万元，成本费用率85.0%，市场占有率18.5%，各项指标均创历史新高。</p>
+                    <p>数字化转型是2024年核心战略，投入200万元搭建线上智能服务平台，预计2025年实现线上订单占比提升至60%。</p>
+                    <p>主要风险点为数字化转型投入回报周期风险（30%）、行业政策调整风险（25%）。</p>
+                `,
+                interactionType: 'like',
+                comment: '2024年度报告分析非常全面，数字化转型战略解读清晰，对明年规划很有帮助！',
+                exportCount: 20
+            }
+        };
+
+        // ========== 核心功能实现 ==========
+        // 1. 查看报告详情
+        const viewModal = document.getElementById('viewModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const reportDetail = document.getElementById('reportDetail');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        // 绑定查看按钮事件
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tr = this.closest('tr');
+                const reportId = tr.dataset.id;
+                const data = reportDetailData[reportId];
+                
+                if (data) {
+                    // 填充弹窗标题
+                    modalTitle.textContent = `报告详情 - ${data.name}`;
+                    
+                    // 构建详情内容
+                    let sourceDocsHtml = '';
+                    data.sourceDocs.forEach(doc => {
+                        sourceDocsHtml += `<span class="doc-tag">${doc}</span>`;
+                    });
+                    
+                    reportDetail.innerHTML = `
+                        <div class="detail-item">
+                            <span class="detail-label">报告名称：</span>
+                            ${data.name}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">生成时间：</span>
+                            ${data.createTime}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">生成依据：</span>
+                            ${sourceDocsHtml}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">报告内容：</span>
+                            <div class="content-preview">
+                                ${data.content}
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">互动记录：</span>
+                            <div class="interaction-record">
+                                ${data.interactionType === 'like' 
+                                    ? '<span class="record-item like-record" title="点赞">👍 点赞</span>' 
+                                    : '<span class="record-item dislike-record" title="点踩">👎 点踩</span>'
+                                }
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">评价内容：</span>
+                            <div class="comment-content">
+                                ${data.comment}
+                            </div>
+                        </div>
+                        <div class="detail-item export-section">
+                            <button class="btn-export" onclick="exportReport('${data.name}', ${data.exportCount})">
+                                📥 导出 (${data.exportCount}次)
+                            </button>
+                        </div>
+                    `;
+                    
+                    // 显示弹窗
+                    viewModal.style.display = 'flex';
+                }
+            });
+        });
+
+        // 关闭弹窗
+        modalCloseBtn.addEventListener('click', () => {
+            viewModal.style.display = 'none';
+        });
+
+        // 点击弹窗外区域关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === viewModal) {
+                viewModal.style.display = 'none';
+            }
+        });
+
+        // 2. 删除记录功能
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tr = this.closest('tr');
+                const reportName = tr.cells[1].textContent;
+                
+                if (confirm(`确定要删除 "${reportName}" 这条记录吗？此操作不可恢复！`)) {
+                    tr.remove();
+                    // 这里可以添加更新总记录数的逻辑
+                }
+            });
+        });
+
+        // 3. 导出功能（弹窗内）
+        function exportReport(reportName, currentCount) {
+            alert(`开始导出 "${reportName}"，文件将以Word格式下载！\n\n当前导出次数：${currentCount} 次`);
+        }
+
+        // 4. 搜索重置功能
+        document.querySelector('.btn-search').addEventListener('click', function() {
+            const reportName = document.getElementById('reportName').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const sourceDoc = document.getElementById('sourceDoc').value;
+            
+            // 这里可以添加实际的筛选逻辑
+            alert(`已执行查询：
+报告名称关键词：${reportName || '无'}
+生成时间范围：${startDate || '无'} 至 ${endDate || '无'}
+生成文档筛选：${sourceDoc ? (sourceDoc === '2022' ? '包含2022年度报告' : sourceDoc === '2023' ? '包含2023年度报告' : '包含2024年度报告') : '全部'}`);
+        });
+
+        document.querySelector('.btn-reset').addEventListener('click', function() {
+            document.getElementById('reportName').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('sourceDoc').value = '';
+        });
+
+        // 5. 分页功能（模拟）
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            if (!btn.classList.contains('disabled')) {
+                btn.addEventListener('click', function() {
+                    if (!this.classList.contains('active')) {
+                        document.querySelectorAll('.pagination-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        // 这里可以添加实际的分页加载逻辑
+                        alert(`已切换至第 ${this.textContent} 页`);
+                    }
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>
